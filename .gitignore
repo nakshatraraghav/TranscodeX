@@ -1,0 +1,6 @@
+.env
+.env.local
+.env.prod
+.env.test
+
+server/bin
