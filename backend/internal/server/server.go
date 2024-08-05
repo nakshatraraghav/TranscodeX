@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/nakshatraraghav/transcodex/backend/internal/config"
 )
 
 type Server struct {
@@ -19,7 +20,10 @@ type Server struct {
 
 func New() *Server {
 
-	addr := ":3000"
+	if err := config.LoadEnv(); err != nil {
+		panic(err)
+	}
+	addr := config.GetEnv().Addr
 
 	router := chi.NewRouter()
 	server := &http.Server{
@@ -44,7 +48,7 @@ func (s *Server) Start() error {
 	echan := make(chan error, 1)
 
 	go func() {
-		slog.Info("starting server on localhost:3000")
+		slog.Info("starting server on localhost" + s.addr)
 		err := s.server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			echan <- err
