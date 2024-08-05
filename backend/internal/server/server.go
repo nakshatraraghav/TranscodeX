@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"net/http"
 	"os"
@@ -9,11 +10,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/nakshatraraghav/transcodex/backend/db"
 	"github.com/nakshatraraghav/transcodex/backend/internal/config"
 )
 
 type Server struct {
 	addr   string
+	db     *sql.DB
 	router *chi.Mux
 	server *http.Server
 }
@@ -31,8 +34,14 @@ func New() *Server {
 		Handler: router,
 	}
 
+	db, err := db.NewPostgresConnection()
+	if err != nil {
+		panic(err)
+	}
+
 	return &Server{
 		addr:   addr,
+		db:     db,
 		router: router,
 		server: server,
 	}
@@ -71,6 +80,14 @@ func (s *Server) Start() error {
 	if err := s.server.Shutdown(tctx); err != nil && err != context.Canceled {
 		return err
 	}
+
+	slog.Info("attempting to close database connection")
+	err := s.db.Close()
+	if err != nil {
+		return err
+	}
+
+	slog.Info("database connection successfully closed")
 
 	slog.Info("server shutdown procedure complete, graceful shutdown successful")
 	return nil
