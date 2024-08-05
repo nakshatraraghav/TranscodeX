@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/nakshatraraghav/transcodex/backend/db"
 	"github.com/nakshatraraghav/transcodex/backend/internal/config"
+	"github.com/nakshatraraghav/transcodex/backend/util"
 )
 
 type Server struct {
@@ -21,11 +22,16 @@ type Server struct {
 	server *http.Server
 }
 
-func New() *Server {
-
+func init() {
 	if err := config.LoadEnv(); err != nil {
 		panic(err)
 	}
+	art := util.AsciiArt()
+	slog.Info(art)
+}
+
+func New() *Server {
+
 	addr := config.GetEnv().Addr
 
 	router := chi.NewRouter()
