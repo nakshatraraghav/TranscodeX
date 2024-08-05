@@ -1,8 +1,12 @@
 package server
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -31,16 +35,39 @@ func New() *Server {
 }
 
 func (s *Server) Start() error {
-
 	s.middlewares()
 	s.routes()
 
-	slog.Info("starting server on localhost:3000")
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 
-	s.router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
+	echan := make(chan error, 1)
 
-	return s.server.ListenAndServe()
+	go func() {
+		slog.Info("starting server on localhost:3000")
+		err := s.server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			echan <- err
+		}
+		close(echan)
+	}()
+
+	select {
+	case err := <-echan:
+		return err
+	case <-ctx.Done():
+		stop()
+	}
+
+	slog.Info("shutting down the server gracefully, press Ctrl+C again to force")
+
+	tctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := s.server.Shutdown(tctx); err != nil && err != context.Canceled {
+		return err
+	}
+
+	slog.Info("server shutdown procedure complete, graceful shutdown successful")
+	return nil
 }
