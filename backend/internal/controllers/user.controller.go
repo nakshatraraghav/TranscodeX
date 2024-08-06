@@ -21,7 +21,7 @@ type UserController struct {
 	service services.UserService
 }
 
-func NewController(service services.UserService) *UserController {
+func NewUserController(service services.UserService) *UserController {
 	return &UserController{
 		service: service,
 	}
@@ -30,8 +30,8 @@ func NewController(service services.UserService) *UserController {
 func (us *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	body := r.Context().Value(ckey).(schema.CreateUserSchema)
 
-	_, err := us.service.GetUserByEmail(r.Context(), body.Email)
-	if err == nil {
+	exists := us.service.UserExists(r.Context(), body.Email)
+	if exists {
 		util.WriteError(w, http.StatusConflict, errCreateUser)
 		return
 	}

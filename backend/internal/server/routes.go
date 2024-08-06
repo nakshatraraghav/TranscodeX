@@ -1,7 +1,16 @@
 package server
 
-import "github.com/nakshatraraghav/transcodex/backend/internal/routes"
+import (
+	"net/http"
+
+	"github.com/nakshatraraghav/transcodex/backend/internal/routes"
+)
 
 func (s *Server) routes() {
-	routes.UserRouter(s.router)
+
+	s.router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
+
+	routes.UserRouter(s.router, s.db)
 }
