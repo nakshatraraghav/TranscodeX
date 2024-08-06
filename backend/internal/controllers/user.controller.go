@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	ckey          types.RequestBodyContextKey = "body"
-	errCreateUser error                       = errors.New("create user operation failed, internal server error")
+	errCreateUser error = errors.New("create user operation failed, internal server error")
 )
 
 type UserController struct {
@@ -28,7 +27,7 @@ func NewUserController(service services.UserService) *UserController {
 }
 
 func (us *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	body := r.Context().Value(ckey).(schema.CreateUserSchema)
+	body := r.Context().Value(types.ContextKey).(schema.CreateUserSchema)
 
 	exists := us.service.UserExists(r.Context(), body.Email)
 	if exists {
