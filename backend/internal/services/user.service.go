@@ -42,9 +42,6 @@ func (us *userService) GetUserByEmail(ctx context.Context, email string) (*schem
 	err := row.Scan(&user.ID, &user.Name, &user.Username,
 		&user.Email, &user.CreatedAt, &user.UpdatedAt,
 	)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
 
 	if err != nil {
 		return nil, err
