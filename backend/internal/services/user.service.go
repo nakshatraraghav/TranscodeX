@@ -34,13 +34,19 @@ func (us *userService) GetUserByEmail(ctx context.Context, email string) (*schem
 	var user schema.User
 
 	q := `SELECT  
-	id, name, username, email, created_at, updated_at
+	id, name, username, email, password, created_at, updated_at
 	FROM users WHERE email = $1`
 
 	row := us.db.QueryRowContext(ctx, q, email)
 
-	err := row.Scan(&user.ID, &user.Name, &user.Username,
-		&user.Email, &user.CreatedAt, &user.UpdatedAt,
+	err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
 	if err != nil {

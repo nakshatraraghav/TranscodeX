@@ -43,5 +43,5 @@ func create(payload jwt.MapClaims, ttl time.Duration, key string) (string, error
 
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	return t.SignedString(key)
+	return t.SignedString([]byte(key))
 }
