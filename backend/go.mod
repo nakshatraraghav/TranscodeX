@@ -9,6 +9,8 @@ require (
 	github.com/lib/pq v1.10.9
 )
 
+require github.com/golang-jwt/jwt/v5 v5.2.1
+
 require (
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
