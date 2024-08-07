@@ -3,7 +3,9 @@ package config
 import (
 	"log/slog"
 	"os"
+	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/nakshatraraghav/transcodex/backend/lib"
 )
@@ -11,9 +13,17 @@ import (
 type env struct {
 	Addr              string `validate:"required"`
 	CONNECTION_STRING string `validate:"required"`
+	JWT_PRIVATE_KEY   string `validate:"required"`
+	ACCESS_TOKEN_TTL  string `validate:"required,duration"`
+	REFRESH_TOKEN_TTL string `validate:"required,duration"`
 }
 
 var ev env
+
+func ValidateDuration(fl validator.FieldLevel) bool {
+	_, err := time.ParseDuration(fl.Field().String())
+	return err == nil
+}
 
 func LoadEnv() error {
 	if err := godotenv.Load(".env.local"); err != nil {
@@ -25,8 +35,12 @@ func LoadEnv() error {
 
 	e.Addr = os.Getenv("PORT")
 	e.CONNECTION_STRING = os.Getenv("CONNECTION_STRING")
+	e.JWT_PRIVATE_KEY = os.Getenv("JWT_PRIVATE_KEY")
+	e.ACCESS_TOKEN_TTL = os.Getenv("ACCESS_TOKEN_TTL")
+	e.REFRESH_TOKEN_TTL = os.Getenv("REFRESH_TOKEN_TTL")
 
 	vd := lib.GetValidator()
+	vd.RegisterValidation("duration", ValidateDuration)
 
 	if err := vd.Struct(e); err != nil {
 		slog.Error("failed to validate the environment variables file please check it again")
