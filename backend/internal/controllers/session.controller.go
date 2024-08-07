@@ -31,7 +31,7 @@ func (sc *SessionController) CreateSessionHandler(w http.ResponseWriter, r *http
 	// Step 1: Check if the user exists or not
 	user, err := sc.userService.GetUserByEmail(r.Context(), body.Email)
 	if err != nil {
-		util.WriteError(w, http.StatusUnauthorized, "invalid credentials")
+		util.WriteError(w, http.StatusUnauthorized, "user does not exist")
 		return
 	}
 
