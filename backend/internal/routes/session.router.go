@@ -16,10 +16,6 @@ func SessionRouter(router *chi.Mux, db *sql.DB) {
 	subrouter := chi.NewRouter()
 	router.Mount("/sessions", subrouter)
 
-	subrouter.With(middlewares.AuthMiddleware).Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("OK"))
-	})
-
 	subrouter.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
@@ -29,6 +25,11 @@ func SessionRouter(router *chi.Mux, db *sql.DB) {
 
 	controller := controllers.NewSessionController(us, ss)
 
-	subrouter.With(middlewares.ValidateRequestBody[schema.CreateSessionSchema]).Post("/", controller.CreateSessionHandler)
+	subrouter.With(
+		middlewares.ValidateRequestBody[schema.CreateSessionSchema],
+	).Post("/", controller.CreateSessionHandler)
 
+	subrouter.With(
+		middlewares.AuthMiddleware,
+	).Get("/", controller.GetCurrentSessionHandler)
 }

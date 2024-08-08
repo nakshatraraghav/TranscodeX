@@ -87,3 +87,20 @@ func (sc *SessionController) CreateSessionHandler(w http.ResponseWriter, r *http
 
 	util.WriteJSON(w, http.StatusCreated, "session created, cookies set")
 }
+
+func (sc *SessionController) GetCurrentSessionHandler(w http.ResponseWriter, r *http.Request) {
+	// authenticated route
+	claims, err := util.NewJwtClaims(r)
+	if err != nil {
+		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	session, err := sc.sessionService.GetSessionByID(r.Context(), claims.SID)
+	if err != nil {
+		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, session)
+}

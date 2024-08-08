@@ -61,7 +61,38 @@ func (ss *sessionService) GetSessionByID(ctx context.Context, id uuid.UUID) (*sc
 }
 
 func (ss *sessionService) GetAllActiveSessions(ctx context.Context, id uuid.UUID) ([]schema.Session, error) {
-	return nil, nil
+	var sessions []schema.Session
+
+	q := `SELECT id, valid, user_agent, ip, user_id, created_at, updated_at
+	FROM sessions
+	WHERE id = $1 AND valid = true`
+
+	rows, err := ss.db.QueryContext(ctx, q, id)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var session schema.Session
+
+		err := rows.Scan(
+			&session.ID,
+			&session.Valid,
+			&session.UserAgent,
+			&session.Ip,
+			&session.UserID,
+			&session.CreatedAt,
+			&session.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		sessions = append(sessions, session)
+	}
+
+	return sessions, nil
 }
 
 func (ss *sessionService) InvalidateSession(ctx context.Context, id uuid.UUID) error {
