@@ -2,15 +2,56 @@ package util
 
 import (
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/nakshatraraghav/transcodex/backend/internal/config"
+	"github.com/nakshatraraghav/transcodex/backend/types"
 )
 
 type Tokens struct {
 	AccessToken  string
 	RefreshToken string
+}
+
+type Claims struct {
+	Exp float64
+	SID uuid.UUID
+	ID  uuid.UUID
+}
+
+func NewJwtClaims(r *http.Request) (Claims, error) {
+	claims := r.Context().Value(types.AuthContextKey).(jwt.MapClaims)
+
+	id, ok := claims["uid"]
+	sid, sok := claims["sid"]
+	exp, eok := claims["exp"]
+
+	if !ok || !sok || !eok {
+		return Claims{}, errors.New("failed to parse the claims")
+	}
+
+	userIdString := id.(string)
+	sessionIdString := sid.(string)
+	expirationTime := exp.(float64)
+
+	userUUID, err := uuid.Parse(userIdString)
+	if err != nil {
+		return Claims{}, err
+	}
+
+	sessionUUID, err := uuid.Parse(sessionIdString)
+	if err != nil {
+		return Claims{}, err
+	}
+
+	return Claims{
+		Exp: expirationTime,
+		ID:  userUUID,
+		SID: sessionUUID,
+	}, nil
 }
 
 type TokenValidationResult struct {
