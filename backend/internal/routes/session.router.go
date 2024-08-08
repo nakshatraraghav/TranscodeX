@@ -36,4 +36,12 @@ func SessionRouter(router *chi.Mux, db *sql.DB) {
 	subrouter.With(
 		middlewares.AuthMiddleware,
 	).Get("/all", controller.GetAllActiveSessionsHandler)
+
+	subrouter.With(
+		middlewares.AuthMiddleware,
+	).Delete("/", controller.InvalidateCurrentSessionHandler)
+
+	subrouter.With(
+		middlewares.AuthMiddleware,
+	).Delete("/all", controller.InvalidateAllSessionsHandler)
 }

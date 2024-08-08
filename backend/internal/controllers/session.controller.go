@@ -3,7 +3,6 @@ package controllers
 import (
 	"database/sql"
 	"errors"
-	"log/slog"
 	"net/http"
 	"net/url"
 
@@ -30,17 +29,14 @@ func NewSessionController(us services.UserService, ss services.SessionService) *
 func (sc *SessionController) CreateSessionHandler(w http.ResponseWriter, r *http.Request) {
 	body := r.Context().Value(types.ContextKey).(schema.CreateSessionSchema)
 
-	// Step 1: Check if the user exists or not
 	user, err := sc.userService.GetUserByEmail(r.Context(), body.Email)
 	if err != nil {
 		util.WriteError(w, http.StatusUnauthorized, "user does not exist")
 		return
 	}
 
-	// Step 2: check the password of this user
 	match, err := argon2id.ComparePasswordAndHash(body.Password, user.Password)
 	if err != nil {
-		slog.Error(err.Error())
 		util.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -50,26 +46,22 @@ func (sc *SessionController) CreateSessionHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	// Step 3: create session for the user
 	agent := r.Header.Get("User-Agent")
 
 	session, err := sc.sessionService.CreateSession(r.Context(), user.ID, r.RemoteAddr, agent)
 	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, "failed to create the user session, internal server error")
+		util.WriteError(w, http.StatusInternalServerError, "failed to create the user session")
 		return
 	}
 
-	// Step 4: Create the json tokens
 	tokens, err := util.CreateTokens(jwt.MapClaims{"uid": user.ID, "sid": session.ID})
 	if err != nil {
-		slog.Error(err.Error())
 		util.WriteError(w, http.StatusInternalServerError, "failed to generate tokens")
 		return
 	}
 
 	tstr, err := util.Encode(tokens)
 	if err != nil {
-		slog.Error(err.Error())
 		util.WriteError(w, http.StatusInternalServerError, "failed to generate tokens")
 		return
 	}
@@ -91,7 +83,6 @@ func (sc *SessionController) CreateSessionHandler(w http.ResponseWriter, r *http
 }
 
 func (sc *SessionController) GetCurrentSessionHandler(w http.ResponseWriter, r *http.Request) {
-	// authenticated route
 	claims, err := util.NewJwtClaims(r)
 	if err != nil {
 		util.WriteError(w, http.StatusBadRequest, err.Error())
@@ -100,7 +91,11 @@ func (sc *SessionController) GetCurrentSessionHandler(w http.ResponseWriter, r *
 
 	session, err := sc.sessionService.GetSessionByID(r.Context(), claims.SID)
 	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "session not found")
+		} else {
+			util.WriteError(w, http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 
@@ -119,10 +114,54 @@ func (sc *SessionController) GetAllActiveSessionsHandler(w http.ResponseWriter, 
 		if errors.Is(err, sql.ErrNoRows) {
 			util.WriteError(w, http.StatusNotFound, "No active sessions found")
 		} else {
-			util.WriteError(w, http.StatusInternalServerError, "Failed to retrieve sessions")
+			util.WriteError(w, http.StatusInternalServerError, err.Error())
 		}
 		return
 	}
 
 	util.WriteJSON(w, http.StatusOK, sessions)
+}
+
+func (sc *SessionController) InvalidateCurrentSessionHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := util.NewJwtClaims(r)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = sc.sessionService.InvalidateSession(r.Context(), claims.SID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "session not found")
+		} else {
+			util.WriteError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	http.SetCookie(w, util.ClearCookie("authorization"))
+
+	util.WriteJSON(w, http.StatusOK, "successfully logged out of this session")
+}
+
+func (sc *SessionController) InvalidateAllSessionsHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := util.NewJwtClaims(r)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = sc.sessionService.InvalidateAllSessions(r.Context(), claims.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "no active sessions found")
+		} else {
+			util.WriteError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	http.SetCookie(w, util.ClearCookie("authorization"))
+
+	util.WriteJSON(w, http.StatusOK, "successfully logged out of all sessions for this user")
 }
