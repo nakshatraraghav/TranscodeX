@@ -14,4 +14,5 @@ func (s *Server) routes() {
 
 	routes.UserRouter(s.router, s.db)
 	routes.SessionRouter(s.router, s.db)
+	routes.ApiKeyRouter(s.router, s.db)
 }
