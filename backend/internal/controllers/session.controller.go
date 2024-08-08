@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"database/sql"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -92,7 +94,7 @@ func (sc *SessionController) GetCurrentSessionHandler(w http.ResponseWriter, r *
 	// authenticated route
 	claims, err := util.NewJwtClaims(r)
 	if err != nil {
-		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		util.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -103,4 +105,24 @@ func (sc *SessionController) GetCurrentSessionHandler(w http.ResponseWriter, r *
 	}
 
 	util.WriteJSON(w, http.StatusOK, session)
+}
+
+func (sc *SessionController) GetAllActiveSessionsHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := util.NewJwtClaims(r)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	sessions, err := sc.sessionService.GetAllActiveSessions(r.Context(), claims.ID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.WriteError(w, http.StatusNotFound, "No active sessions found")
+		} else {
+			util.WriteError(w, http.StatusInternalServerError, "Failed to retrieve sessions")
+		}
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, sessions)
 }

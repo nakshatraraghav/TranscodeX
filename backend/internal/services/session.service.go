@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/nakshatraraghav/transcodex/backend/internal/schema"
@@ -65,7 +66,7 @@ func (ss *sessionService) GetAllActiveSessions(ctx context.Context, id uuid.UUID
 
 	q := `SELECT id, valid, user_agent, ip, user_id, created_at, updated_at
 	FROM sessions
-	WHERE id = $1 AND valid = true`
+	WHERE user_id = $1 AND valid = true`
 
 	rows, err := ss.db.QueryContext(ctx, q, id)
 	if err != nil {
@@ -91,6 +92,8 @@ func (ss *sessionService) GetAllActiveSessions(ctx context.Context, id uuid.UUID
 
 		sessions = append(sessions, session)
 	}
+
+	fmt.Println(sessions)
 
 	return sessions, nil
 }
