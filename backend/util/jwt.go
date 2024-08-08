@@ -110,9 +110,10 @@ func ValidateToken(tokenString string) TokenValidationResult {
 		return TokenValidationResult{Valid: false, Expired: false, Error: err}
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return TokenValidationResult{Valid: true, Expired: false, Error: nil, Claims: claims}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return TokenValidationResult{Valid: false, Expired: false, Error: errors.New("invalid token")}
 	}
 
-	return TokenValidationResult{Valid: false, Expired: false, Error: errors.New("invalid token")}
+	return TokenValidationResult{Valid: true, Expired: false, Error: nil, Claims: claims}
 }
