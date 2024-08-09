@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"database/sql"
+	"errors"
 
+	"github.com/google/uuid"
 	"github.com/nakshatraraghav/transcodex/backend/internal/schema"
 )
 
@@ -11,6 +13,7 @@ type UserService interface {
 	UserExists(context.Context, string) bool
 	GetUserByEmail(context.Context, string) (*schema.User, error)
 	CreateUser(context.Context, schema.CreateUserSchema) (*schema.User, error)
+	DeteleUser(context.Context, uuid.UUID) error
 }
 
 type userService struct {
@@ -76,4 +79,26 @@ func (us *userService) CreateUser(ctx context.Context, body schema.CreateUserSch
 	user.Password = "<REDACTED>"
 
 	return &user, nil
+}
+
+func (us *userService) DeteleUser(ctx context.Context, id uuid.UUID) error {
+
+	q := `DELETE FROM users WHERE id = $1`
+
+	result, err := us.db.ExecContext(ctx, q, id)
+	if err != nil {
+		return err
+	}
+
+	cnt, err := result.RowsAffected()
+	if err != nil {
+		return errors.New("failed to get the affected rows")
+	}
+
+	if cnt == 0 {
+		return errors.New("failed to delete the user, please try again")
+	}
+
+	return nil
+
 }

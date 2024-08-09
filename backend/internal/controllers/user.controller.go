@@ -53,3 +53,21 @@ func (us *UserController) CreateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	util.WriteJSON(w, http.StatusCreated, user)
 }
+
+func (us *UserController) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := util.NewJwtClaims(r)
+	if err != nil {
+		util.WriteError(w, http.StatusBadRequest, "invalid tokens")
+		return
+	}
+
+	err = us.service.DeteleUser(r.Context(), claims.ID)
+	if err != nil {
+		util.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	http.SetCookie(w, util.ClearCookie("authorization"))
+
+	util.WriteJSON(w, http.StatusOK, "user deleted")
+}

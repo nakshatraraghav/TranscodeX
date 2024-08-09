@@ -22,5 +22,12 @@ func UserRouter(router *chi.Mux, db *sql.DB) {
 	subrouter.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
-	subrouter.With(middlewares.ValidateRequestBody[schema.CreateUserSchema]).Post("/", controller.CreateUserHandler)
+
+	subrouter.With(
+		middlewares.ValidateRequestBody[schema.CreateUserSchema],
+	).Post("/", controller.CreateUserHandler)
+
+	subrouter.With(
+		middlewares.AuthMiddleware,
+	).Delete("/", controller.DeleteUserHandler)
 }
