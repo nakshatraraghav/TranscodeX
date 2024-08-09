@@ -1,0 +1,549 @@
+{
+	"info": {
+		"_postman_id": "501f11e8-4f1d-4ab1-a213-e61dc306fb54",
+		"name": "transcodex",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25346394"
+	},
+	"item": [
+		{
+			"name": "healthchecks",
+			"item": [
+				{
+					"name": "base",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"response status code is 200\", () => {",
+									"  pm.expect(pm.response.code).to.equal(200)",
+									"})",
+									"",
+									"pm.test(\"response time should be less than 150ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.lte(150)",
+									"})",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"expected status code to be 200\", () => {",
+									"\tpm.expect(pm.response.code).to.be.equal(200)",
+									"})",
+									"",
+									"pm.test(\"expect response to be OK\", () => {",
+									"\tpm.expect(pm.response.status).to.be.equal(\"OK\")",
+									"})",
+									"",
+									"pm.test(\"expect request to take less than 100ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.be.lte(100)",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "apikey",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"response status code should be 200\", () => {",
+									"\tpm.expect(pm.response.code).to.be.equal(200)",
+									"})",
+									"",
+									"pm.test(\"request should take less than 150ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.be.lte(150)",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/apikeys/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"apikeys",
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"expect status code to be 201\", () => {",
+									"\tpm.expect(pm.response.code).to.be.equal(201)",
+									"})",
+									"",
+									"pm.test(\"expect the request to take less than 150ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.be.lte(150)",
+									"})",
+									"",
+									"pm.test(\"Response has the required fields\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData).to.have.property('id');",
+									"    pm.expect(responseData).to.have.property('name');",
+									"    pm.expect(responseData).to.have.property('username');",
+									"    pm.expect(responseData).to.have.property('email');",
+									"    pm.expect(responseData).to.have.property('password');",
+									"    pm.expect(responseData).to.have.property('created_at');",
+									"    pm.expect(responseData).to.have.property('updated_at');",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let name = pm.environment.replaceIn(\"{{$randomFullName}}\")",
+									"let username = pm.environment.replaceIn(\"{{$randomUserName}}\")",
+									"let email = pm.environment.replaceIn(\"{{$randomEmail}}\")",
+									"let password = pm.environment.replaceIn(\"${{$randomPassword}}\")",
+									"",
+									"pm.environment.set(\"name\", name)",
+									"pm.environment.set(\"username\", username)",
+									"pm.environment.set(\"email\", email)",
+									"pm.environment.set(\"password\", password)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"{{name}}\",\n\t\"username\": \"{{username}}\",\n\t\"email\": \"{{email}}\",\n\t\"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "session",
+			"item": [
+				{
+					"name": "create session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"expect status code to be 201\", () => {",
+									"\tpm.expect(pm.response.code).to.be.equal(201)",
+									"})",
+									"",
+									"pm.test(\"expect 'authorization' cookie to contain AccessToken and RefreshToken\", () => {",
+									"  let cookie = pm.cookies.get(\"authorization\");",
+									"",
+									"  pm.expect(cookie).to.be.a('string');",
+									"",
+									"  let accessTokenPattern = /\"AccessToken\":\"[^\"]+\"/;",
+									"  let refreshTokenPattern = /\"RefreshToken\":\"[^\"]+\"/;",
+									"",
+									"\tpm.expect(cookie).to.match(accessTokenPattern)",
+									"\tpm.expect(cookie).to.match(refreshTokenPattern)",
+									"});",
+									"",
+									"",
+									"pm.test(\"expect request to take less than 150ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.be.lte(150)",
+									"})",
+									"",
+									"",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"{{email}}\",\n\t\"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get current session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"expect response status code to be 200\", () => {",
+									"\tpm.expect(pm.response.code).to.equal(200)",
+									"})",
+									"",
+									"pm.test(\"expect the response to have these required fields\", () => {",
+									"  const data = pm.response.json();",
+									"  ",
+									"  pm.expect(data).to.be.an('object');",
+									"  pm.expect(data).to.have.property('id');",
+									"  pm.expect(data).to.have.property('valid');",
+									"  pm.expect(data).to.have.property('user_agent');",
+									"  pm.expect(data).to.have.property('ip');",
+									"  pm.expect(data).to.have.property('user_id');",
+									"  pm.expect(data).to.have.property('created_at');",
+									"  pm.expect(data).to.have.property('updated_at');",
+									"});",
+									"",
+									"pm.test(\"expect route to take less than 150 ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.be.lte(150)",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all active sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"expect response status code to be 200\", () => {",
+									"\tpm.expect(pm.response.code).to.equal(200)",
+									"})",
+									"",
+									"pm.test(\"Response array contains objects with required fields\", () => {",
+									"    const data = pm.response.json();",
+									"    ",
+									"    data.forEach((session) => {",
+									"      pm.expect(session).to.be.an('object');",
+									"      pm.expect(session).to.have.property('id');",
+									"      pm.expect(session).to.have.property('valid');",
+									"      pm.expect(session).to.have.property('user_agent');",
+									"      pm.expect(session).to.have.property('ip');",
+									"      pm.expect(session).to.have.property('user_id');",
+									"      pm.expect(session).to.have.property('created_at');",
+									"      pm.expect(session).to.have.property('updated_at');",
+									"    });",
+									"});",
+									"",
+									"",
+									"pm.test(\"expect route to take less than 150 ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.be.lte(150)",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "revoke api key",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "invalidate all sessions",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								"all"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "apikeys",
+			"item": [
+				{
+					"name": "create",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"expect response status code to be 201\", () => {",
+									"\tpm.expect(pm.response.code).to.be.equal(200)",
+									"})",
+									"",
+									"pm.test(\"expect request to take less than 150ms\", () => {",
+									"\tpm.expect(pm.response.responseTime).to.be.lte(150)",
+									"})",
+									"",
+									"const body = pm.response.json()",
+									"",
+									"pm.test(\"expect the response body of a certain type\", () => {",
+									"\tpm.expect(body).to.be.an('object');",
+									"  pm.expect(body).to.have.property('id');",
+									"  pm.expect(body).to.have.property('enabled');",
+									"  pm.expect(body).to.have.property('key');",
+									"  pm.expect(body).to.have.property('user_id');",
+									"  pm.expect(body).to.have.property('created_at');",
+									"  pm.expect(body).to.have.property('updated_at');",
+									"})",
+									"",
+									"pm.environment.set(\"x-api-key\", body.key)",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/apikeys",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"apikeys"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "current valid key",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/apikeys",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"apikeys"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "revoke api key",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "{{x-api-key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/apikeys",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"apikeys"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
