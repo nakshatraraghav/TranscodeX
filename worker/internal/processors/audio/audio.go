@@ -10,6 +10,7 @@ import (
 )
 
 type AudioProcessor struct {
+	path string
 	data *bytes.Buffer
 }
 
@@ -19,8 +20,8 @@ func NewAudioProcessor() *AudioProcessor {
 
 func (ap *AudioProcessor) LoadData() error {
 	key := config.GetEnv().OBJECT_KEY
-
 	fpath := filepath.Join("assets", filepath.Base(key))
+	ap.path = fpath
 
 	file, err := os.Open(fpath)
 	if err != nil {
@@ -39,5 +40,6 @@ func (ap *AudioProcessor) LoadData() error {
 }
 
 func (ap *AudioProcessor) ApplyTransformations(map[string]string) ([]byte, error) {
+	ap.LoadData()
 	return nil, nil
 }

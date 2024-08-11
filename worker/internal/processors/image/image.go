@@ -10,6 +10,7 @@ import (
 )
 
 type ImageProcessor struct {
+	path string
 	data *bytes.Buffer
 }
 
@@ -19,8 +20,8 @@ func NewImageProcessor() *ImageProcessor {
 
 func (ip *ImageProcessor) LoadData() error {
 	key := config.GetEnv().OBJECT_KEY
-
 	fpath := filepath.Join("assets", filepath.Base(key))
+	ip.path = fpath
 
 	file, err := os.Open(fpath)
 	if err != nil {
@@ -39,5 +40,6 @@ func (ip *ImageProcessor) LoadData() error {
 }
 
 func (ip *ImageProcessor) ApplyTransformations(map[string]string) ([]byte, error) {
+	ip.LoadData()
 	return nil, nil
 }

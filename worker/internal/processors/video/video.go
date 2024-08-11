@@ -10,6 +10,7 @@ import (
 )
 
 type VideoProcessor struct {
+	path string
 	data *bytes.Buffer
 }
 
@@ -19,8 +20,8 @@ func NewVideoProcessor() *VideoProcessor {
 
 func (vp *VideoProcessor) LoadData() error {
 	key := config.GetEnv().OBJECT_KEY
-
 	fpath := filepath.Join("assets", filepath.Base(key))
+	vp.path = fpath
 
 	file, err := os.Open(fpath)
 	if err != nil {
@@ -39,5 +40,6 @@ func (vp *VideoProcessor) LoadData() error {
 }
 
 func (vp *VideoProcessor) ApplyTransformations(map[string]string) ([]byte, error) {
+	vp.LoadData()
 	return nil, nil
 }
