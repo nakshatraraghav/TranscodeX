@@ -9,6 +9,7 @@ import (
 )
 
 type env struct {
+	MEDIA_TYPE      string            `validate:"required"`
 	OBJECT_KEY      string            `validate:"required"`
 	BUCKET_NAME     string            `validate:"required"`
 	TRANSFORMATIONS map[string]string `validate:"required"`
@@ -24,6 +25,7 @@ func LoadEnv() error {
 
 	var e env
 
+	e.MEDIA_TYPE = os.Getenv("MEDIA_TYPE")
 	e.BUCKET_NAME = os.Getenv("BUCKET_NAME")
 	e.OBJECT_KEY = os.Getenv("OBJECT_KEY")
 	e.TRANSFORMATIONS = parseTransformations(os.Getenv("TRANSFORMATIONS"))
