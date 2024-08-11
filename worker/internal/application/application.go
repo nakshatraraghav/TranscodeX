@@ -1,8 +1,6 @@
 package application
 
 import (
-	"context"
-
 	"github.com/nakshatraraghav/transcodex/worker/config"
 	"github.com/nakshatraraghav/transcodex/worker/internal/processors/image"
 	"github.com/nakshatraraghav/transcodex/worker/internal/processors/video"
@@ -10,12 +8,11 @@ import (
 )
 
 type MediaProcessor interface {
-	LoadData() error
 	ApplyTransformations(map[string]string) []error
 }
 
 type Application struct {
-	processor *MediaProcessor
+	processor MediaProcessor
 	service   *s3.S3Service
 }
 
@@ -46,25 +43,14 @@ func NewApp() (*Application, error) {
 
 	return &Application{
 		service:   s,
-		processor: &p,
+		processor: p,
 	}, nil
 }
 
 func (a *Application) Run() error {
 
 	// Step 1: Download the media file from S3
-	err := a.service.Download(context.Background())
-	if err != nil {
-		return err
-	}
-
-	// Step 2: run transformations on it
-
-	// Step 3: upload the s3
-	err = a.service.Upload(context.Background())
-	if err != nil {
-		return err
-	}
+	a.processor.ApplyTransformations(config.GetEnv().TRANSFORMATIONS)
 
 	return nil
 }
