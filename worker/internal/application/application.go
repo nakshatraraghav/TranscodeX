@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/nakshatraraghav/transcodex/worker/config"
-	"github.com/nakshatraraghav/transcodex/worker/internal/processors/audio"
 	"github.com/nakshatraraghav/transcodex/worker/internal/processors/image"
 	"github.com/nakshatraraghav/transcodex/worker/internal/processors/video"
 	"github.com/nakshatraraghav/transcodex/worker/internal/s3"
@@ -41,8 +40,6 @@ func NewApp() (*Application, error) {
 		p = image.NewImageProcessor()
 	case "VIDEO":
 		p = video.NewVideoProcessor()
-	case "AUDIO":
-		p = audio.NewAudioProcessor()
 	default:
 		p = nil
 	}
