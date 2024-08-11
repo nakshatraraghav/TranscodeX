@@ -39,7 +39,7 @@ func (ap *AudioProcessor) LoadData() error {
 
 }
 
-func (ap *AudioProcessor) ApplyTransformations(map[string]string) ([]byte, error) {
+func (ap *AudioProcessor) ApplyTransformations(map[string]string) []error {
 	ap.LoadData()
-	return nil, nil
+	return nil
 }

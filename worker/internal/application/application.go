@@ -12,7 +12,7 @@ import (
 
 type MediaProcessor interface {
 	LoadData() error
-	ApplyTransformations(map[string]string) ([]byte, error)
+	ApplyTransformations(map[string]string) []error
 }
 
 type Application struct {

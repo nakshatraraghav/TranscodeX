@@ -39,7 +39,7 @@ func (vp *VideoProcessor) LoadData() error {
 
 }
 
-func (vp *VideoProcessor) ApplyTransformations(map[string]string) ([]byte, error) {
+func (vp *VideoProcessor) ApplyTransformations(map[string]string) []error {
 	vp.LoadData()
-	return nil, nil
+	return nil
 }

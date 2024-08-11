@@ -14,6 +14,8 @@ import (
 	"github.com/nakshatraraghav/transcodex/worker/config"
 )
 
+type fn func(string) error
+
 type ImageProcessor struct {
 	path string
 	data *bytes.Buffer
@@ -53,9 +55,35 @@ func (ip *ImageProcessor) LoadData() error {
 	return nil
 }
 
-func (ip *ImageProcessor) ApplyTransformations(map[string]string) ([]byte, error) {
+func (ip *ImageProcessor) ApplyTransformations(tmap map[string]string) []error {
 
-	return nil, nil
+	ip.LoadData()
+
+	var e []error = []error{}
+
+	fmap := map[string]fn{
+		"RESIZE":             ip.Resize,
+		"FORCE-RESIZE":       ip.ForceResize,
+		"ROTATE":             ip.Rotate,
+		"CONVERT-FORMAT":     ip.ConvertFormat,
+		"WATERMARK":          ip.Watermark,
+		"GENERATE-THUMBNAIL": ip.GenerateThumbnail,
+	}
+
+	for key, value := range tmap {
+		if action, exists := fmap[key]; exists {
+			err := action(value)
+			if err != nil {
+				e = append(e, err)
+			}
+		} else {
+			e = append(e, fmt.Errorf("%v transformation isnt supported, and not applied", key))
+		}
+	}
+
+	ip.SaveChanges()
+
+	return e
 }
 
 func (ip *ImageProcessor) Resize(parameter string) error {
