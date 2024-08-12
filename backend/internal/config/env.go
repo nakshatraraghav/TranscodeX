@@ -16,6 +16,7 @@ type env struct {
 	JWT_PRIVATE_KEY   string `validate:"required"`
 	ACCESS_TOKEN_TTL  string `validate:"required,duration"`
 	REFRESH_TOKEN_TTL string `validate:"required,duration"`
+	BUCKET_NAME       string `validate:"required"`
 }
 
 var ev env
@@ -38,6 +39,7 @@ func LoadEnv() error {
 	e.JWT_PRIVATE_KEY = os.Getenv("JWT_PRIVATE_KEY")
 	e.ACCESS_TOKEN_TTL = os.Getenv("ACCESS_TOKEN_TTL")
 	e.REFRESH_TOKEN_TTL = os.Getenv("REFRESH_TOKEN_TTL")
+	e.BUCKET_NAME = os.Getenv("BUCKET_NAME")
 
 	vd := lib.GetValidator()
 	vd.RegisterValidation("duration", ValidateDuration)
