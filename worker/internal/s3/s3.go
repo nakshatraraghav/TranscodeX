@@ -67,24 +67,21 @@ func (s *S3Service) Download(ctx context.Context) error {
 
 }
 
-func (s *S3Service) Upload(ctx context.Context) error {
+// s3.go
+
+func (s *S3Service) Upload(ctx context.Context, filePath string) error {
 	bucketName := cfg.GetEnv().BUCKET_NAME
-	objectKey := cfg.GetEnv().OBJECT_KEY
+	objectKey := strings.Replace(cfg.GetEnv().OBJECT_KEY, "input", "output", 1)
 
-	outputKey := strings.Replace(objectKey, "input", "output", 1)
-
-	fpath := filepath.Join("assets", filepath.Base(objectKey))
-
-	file, err := os.Open(fpath)
+	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
-
 	defer file.Close()
 
 	_, err = s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(outputKey),
+		Key:    aws.String(objectKey),
 		Body:   file,
 	})
 	if err != nil {
