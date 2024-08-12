@@ -219,5 +219,14 @@ func (ip *ImageProcessor) GenerateThumbnail(parameter string) error {
 }
 
 func (ip *ImageProcessor) SaveChanges() error {
-	return bimg.Write(ip.path, ip.data.Bytes())
+
+	outputDir := filepath.Join("assets", "output")
+	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
+		return err
+	}
+
+	_, file := filepath.Split(ip.path)
+	opath := filepath.Join(outputDir, file)
+
+	return bimg.Write(opath, ip.data.Bytes())
 }

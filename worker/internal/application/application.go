@@ -99,7 +99,7 @@ func (a *Application) Run() error {
 func getTransformedFiles() ([]string, error) {
 	// This implementation assumes transformed files are stored in "assets" directory.
 	// Adjust the pattern as needed to match the generated files.
-	files, err := filepath.Glob(filepath.Join("assets", "*"))
+	files, err := filepath.Glob(filepath.Join("assets", "output", "*"))
 	if err != nil {
 		return nil, err
 	}
