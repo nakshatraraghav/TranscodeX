@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"path/filepath"
 
 	"github.com/nakshatraraghav/transcodex/worker/config"
@@ -54,6 +55,13 @@ func NewApp() (*Application, error) {
 
 func (a *Application) Run() error {
 	ctx := context.Background()
+
+	// Step 0: Create the assets and output folder
+	op := filepath.Join("assets", "output")
+	err := os.MkdirAll(op, os.ModePerm)
+	if err != nil {
+		fmt.Printf("error creating output directory: %v\n", err)
+	}
 
 	// Step 1: Download the media file from S3
 	slog.Info("download starting")

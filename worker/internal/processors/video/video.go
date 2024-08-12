@@ -2,6 +2,7 @@ package video
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -13,14 +14,24 @@ import (
 type fn func(string) error
 
 type VideoProcessor struct {
-	path string
+	ip string
+	op string
 }
 
 func NewVideoProcessor() *VideoProcessor {
 	key := config.GetEnv().OBJECT_KEY
-	fpath := filepath.Join("assets", filepath.Base(key))
+	inputPath := filepath.Join("assets", filepath.Base(key))
 
-	return &VideoProcessor{path: fpath}
+	outputPath := filepath.Join("assets", "output")
+	err := os.MkdirAll(outputPath, os.ModePerm)
+	if err != nil {
+		fmt.Printf("error creating output directory: %v\n", err)
+	}
+
+	return &VideoProcessor{
+		ip: inputPath,
+		op: outputPath,
+	}
 }
 
 func (vp *VideoProcessor) ApplyTransformations(tmap map[string]string) []error {
@@ -38,17 +49,17 @@ func (vp *VideoProcessor) ApplyTransformations(tmap map[string]string) []error {
 				e = append(e, err)
 			}
 		} else {
-			e = append(e, fmt.Errorf("%v transformation isnt supported, and not applied", key))
+			e = append(e, fmt.Errorf("%v transformation isn't supported, and not applied", key))
 		}
 	}
 
 	return e
 }
 
-func Transcode(path, resolution string) error {
-	opath := ReturnNewPath(path, resolution)
+func Transcode(inputPath, outputPath, resolution string) error {
+	opath := ReturnNewPath(outputPath, inputPath, resolution)
 
-	err := ffmpeg.Input(path).
+	err := ffmpeg.Input(inputPath).
 		Filter("scale", ffmpeg.Args{resolution}).
 		Output(opath,
 			ffmpeg.KwArgs{
@@ -71,11 +82,11 @@ func Transcode(path, resolution string) error {
 }
 
 func (vp *VideoProcessor) TranscodeToResolution(resolution string) error {
-	return Transcode(vp.path, resolution)
+	return Transcode(vp.ip, vp.op, resolution)
 }
 
 func (vp *VideoProcessor) TranscodeToMultipleResolutions(parameter string) error {
-	fmt.Println("PATH:", vp.path)
+	fmt.Println("PATH:", vp.ip)
 
 	var wg sync.WaitGroup
 
@@ -93,7 +104,7 @@ func (vp *VideoProcessor) TranscodeToMultipleResolutions(parameter string) error
 		go func(name, resolution string) {
 			defer wg.Done()
 
-			err := Transcode(vp.path, resolution)
+			err := Transcode(vp.ip, vp.op, resolution)
 			if err != nil {
 				errs = append(errs, fmt.Errorf("resolution %s: %w", name, err))
 			}
@@ -109,14 +120,15 @@ func (vp *VideoProcessor) TranscodeToMultipleResolutions(parameter string) error
 	return nil
 }
 
-func ReturnNewPath(original, resolution string) string {
+func ReturnNewPath(outputDir, original, resolution string) string {
 	f := strings.Split(filepath.Base(original), ".")
 	name := f[0]
 	extension := f[1]
 
 	nname := name + "_" + resolution + "." + extension
 
-	opath := filepath.Join("assets", nname)
+	// Set the new output path to the assets/output directory
+	opath := filepath.Join(outputDir, nname)
 
 	return opath
 }
