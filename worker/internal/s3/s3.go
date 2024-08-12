@@ -71,7 +71,7 @@ func (s *S3Service) Download(ctx context.Context) error {
 
 func (s *S3Service) Upload(ctx context.Context, filePath string) error {
 	bucketName := cfg.GetEnv().BUCKET_NAME
-	objectKey := strings.Replace(cfg.GetEnv().OBJECT_KEY, "input", "output", 1)
+	objectKey := GetNewObjectKey(filePath)
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -89,4 +89,15 @@ func (s *S3Service) Upload(ctx context.Context, filePath string) error {
 	}
 
 	return nil
+}
+
+func GetNewObjectKey(filePath string) string {
+	objectKey := strings.Replace(cfg.GetEnv().OBJECT_KEY, "input", "output", 1)
+
+	base := filepath.Base(cfg.GetEnv().OBJECT_KEY)
+	newBase := filepath.Base(filePath)
+	objectKey = strings.Replace(objectKey, base, newBase, 1)
+
+	return objectKey
+
 }
