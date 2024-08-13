@@ -1,10 +1,12 @@
 package middlewares
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 
 	"github.com/nakshatraraghav/transcodex/backend/internal/services"
+	"github.com/nakshatraraghav/transcodex/backend/types"
 	"github.com/nakshatraraghav/transcodex/backend/util"
 )
 
@@ -18,7 +20,7 @@ func ValidateApiKey(service services.ApiKeyService) func(http.Handler) http.Hand
 				return
 			}
 
-			_, err := service.FindApiKey(r.Context(), key)
+			k, err := service.FindApiKey(r.Context(), key)
 			if err != nil {
 				if err == sql.ErrNoRows {
 					util.WriteError(w, http.StatusUnauthorized, "unauthorized, invalid api key")
@@ -28,7 +30,11 @@ func ValidateApiKey(service services.ApiKeyService) func(http.Handler) http.Hand
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			var kc types.ApiKeyContextKey = "apikey"
+
+			ctx := context.WithValue(r.Context(), kc, k)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
