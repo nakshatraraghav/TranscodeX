@@ -96,7 +96,7 @@ func (mc *MediaController) CreateProcessingJobHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	err = mc.service.AddProcessingJobToQueue(body.JobType, key, string(body.Operations))
+	err = mc.service.AddProcessingJobToQueue(body.JobType, key, body.UploadID, string(body.Operations))
 	if err != nil {
 		slog.Error(err.Error())
 		util.WriteError(w, http.StatusInternalServerError, "failed to write job to queue")

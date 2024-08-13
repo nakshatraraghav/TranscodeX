@@ -21,7 +21,7 @@ var (
 type MediaService interface {
 	GetS3KeyFromUpload(ctx context.Context, UploadID uuid.UUID) (string, error)
 
-	AddProcessingJobToQueue(mediaType, key, transformations string) error
+	AddProcessingJobToQueue(mediaType, key, uploadID, transformations string) error
 
 	CreateUpload(ctx context.Context,
 		UserID uuid.UUID,
@@ -115,6 +115,6 @@ func (ms *mediaService) CreateProcessingJob(
 	return id, nil
 }
 
-func (ms *mediaService) AddProcessingJobToQueue(mediaType, key, transformations string) error {
-	return ms.sqs.Enqueue(mediaType, key, transformations)
+func (ms *mediaService) AddProcessingJobToQueue(mediaType, key, uploadID, transformations string) error {
+	return ms.sqs.Enqueue(mediaType, key, uploadID, transformations)
 }

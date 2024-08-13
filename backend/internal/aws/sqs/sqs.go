@@ -28,7 +28,7 @@ func NewSQSService() (*SQSService, error) {
 	}, nil
 }
 
-func (s *SQSService) Enqueue(mediaType, key, transformations string) error {
+func (s *SQSService) Enqueue(mediaType, key, uploadID, transformations string) error {
 
 	_, err := s.queue.SendMessage(
 		&sqs.SendMessageInput{
@@ -40,7 +40,11 @@ func (s *SQSService) Enqueue(mediaType, key, transformations string) error {
 					DataType:    aws.String("String"),
 					StringValue: aws.String(mediaType),
 				},
-				"object_type": &sqs.MessageAttributeValue{
+				"upload_id": &sqs.MessageAttributeValue{
+					DataType:    aws.String("String"),
+					StringValue: aws.String(uploadID),
+				},
+				"object_key": &sqs.MessageAttributeValue{
 					DataType:    aws.String("String"),
 					StringValue: aws.String(key),
 				},
