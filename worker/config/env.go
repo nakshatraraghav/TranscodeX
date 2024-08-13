@@ -9,10 +9,12 @@ import (
 )
 
 type env struct {
-	MEDIA_TYPE      string            `validate:"required"`
-	OBJECT_KEY      string            `validate:"required"`
-	BUCKET_NAME     string            `validate:"required"`
-	TRANSFORMATIONS map[string]string `validate:"required"`
+	MEDIA_TYPE        string            `validate:"required"`
+	OBJECT_KEY        string            `validate:"required"`
+	BUCKET_NAME       string            `validate:"required"`
+	TRANSFORMATIONS   map[string]string `validate:"required"`
+	CONNECTION_STRING string            `validate:"required"`
+	UPLOAD_ID         string            `validate:"required"`
 }
 
 var ev env
@@ -29,6 +31,8 @@ func LoadEnv() error {
 	e.BUCKET_NAME = os.Getenv("BUCKET_NAME")
 	e.OBJECT_KEY = os.Getenv("OBJECT_KEY")
 	e.TRANSFORMATIONS = parseTransformations(os.Getenv("TRANSFORMATIONS"))
+	e.CONNECTION_STRING = os.Getenv("CONNECTION_STRING")
+	e.UPLOAD_ID = os.Getenv("UPLOAD_ID")
 
 	vd := lib.GetValidator()
 
