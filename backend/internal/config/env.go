@@ -17,6 +17,8 @@ type env struct {
 	ACCESS_TOKEN_TTL  string `validate:"required,duration"`
 	REFRESH_TOKEN_TTL string `validate:"required,duration"`
 	BUCKET_NAME       string `validate:"required"`
+	AWS_REGION        string `validate:"required"`
+	SQS_QUEUE_URL     string `validate:"required"`
 }
 
 var ev env
@@ -40,6 +42,8 @@ func LoadEnv() error {
 	e.ACCESS_TOKEN_TTL = os.Getenv("ACCESS_TOKEN_TTL")
 	e.REFRESH_TOKEN_TTL = os.Getenv("REFRESH_TOKEN_TTL")
 	e.BUCKET_NAME = os.Getenv("BUCKET_NAME")
+	e.AWS_REGION = os.Getenv("AWS_REGION")
+	e.SQS_QUEUE_URL = os.Getenv("SQS_QUEUE_URL")
 
 	vd := lib.GetValidator()
 	vd.RegisterValidation("duration", ValidateDuration)
