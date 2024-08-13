@@ -1,8 +1,10 @@
 package schema
 
 import (
+	"encoding/json"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
@@ -34,4 +36,56 @@ type MediaUploadRequestBody struct {
 	FileName string `validate:"required" json:"file_name"`
 	FileType string `validate:"required" json:"file_type"`
 	MimeType string `validate:"required" json:"mime_type"`
+}
+
+type CreateProcessingJobRequestBody struct {
+	JobType    string          `validate:"required,allowed_jobtype" json:"job_type"`
+	UploadID   string          `validate:"required" json:"upload_id"`
+	Operations json.RawMessage `validate:"required,allowed_operations" json:"operations"`
+}
+
+func ValidateJobTypeField(fl validator.FieldLevel) bool {
+	jtype, ok := fl.Field().Interface().(string)
+	if !ok {
+		return false
+	}
+
+	if jtype != "VIDEO" && jtype != "IMAGE" {
+		return false
+	}
+
+	return true
+}
+
+func ValidateOperationsField(fl validator.FieldLevel) bool {
+	allowed := map[string]bool{
+		"RESIZE":               true,
+		"FORCE-RESIZE":         true,
+		"ROTATE":               true,
+		"CONVERT-FORMAT":       true,
+		"WATERMARK":            true,
+		"GENERATE-THUMBNAIL":   true,
+		"TRANSCODE":            true,
+		"TRANSCODE-RESOLUTION": true,
+	}
+
+	operations, ok := fl.Field().Interface().(json.RawMessage)
+	if !ok {
+		return false
+	}
+
+	var ops map[string]string
+	err := json.Unmarshal(operations, &ops)
+	if err != nil {
+		return false
+	}
+
+	for key, _ := range ops {
+		if _, exists := allowed[key]; !exists {
+			return false
+		}
+	}
+
+	return true
+
 }
