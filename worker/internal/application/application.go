@@ -2,15 +2,18 @@ package application
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/nakshatraraghav/transcodex/worker/config"
+	"github.com/nakshatraraghav/transcodex/worker/db"
 	"github.com/nakshatraraghav/transcodex/worker/internal/processors/image"
 	"github.com/nakshatraraghav/transcodex/worker/internal/processors/video"
 	"github.com/nakshatraraghav/transcodex/worker/internal/s3"
+	"github.com/nakshatraraghav/transcodex/worker/internal/service"
 )
 
 type MediaProcessor interface {
@@ -18,6 +21,7 @@ type MediaProcessor interface {
 }
 
 type Application struct {
+	db        *sql.DB
 	processor MediaProcessor
 	service   *s3.S3Service
 }
@@ -30,6 +34,11 @@ func NewApp() (*Application, error) {
 	}
 
 	env := config.GetEnv()
+
+	db, err := db.NewPostgresConnection()
+	if err != nil {
+		return nil, err
+	}
 
 	s, err := s3.NewS3Service()
 	if err != nil {
@@ -48,6 +57,7 @@ func NewApp() (*Application, error) {
 	}
 
 	return &Application{
+		db:        db,
 		service:   s,
 		processor: p,
 	}, nil
@@ -63,8 +73,15 @@ func (a *Application) Run() error {
 		fmt.Printf("error creating output directory: %v\n", err)
 	}
 
+	service := service.NewProcessingJobService(a.db)
+
 	// Step 1: Download the media file from S3
 	slog.Info("download starting")
+
+	err = service.ChangeProcessingJobStatus(ctx, "WORKER:DOWNLOAD_STARTING")
+	if err != nil {
+		slog.Error(err.Error())
+	}
 	if err := a.service.Download(ctx); err != nil {
 		return fmt.Errorf("error downloading media file: %w", err)
 	}
@@ -76,6 +93,11 @@ func (a *Application) Run() error {
 	}
 
 	slog.Info("starting the transformations")
+
+	err = service.ChangeProcessingJobStatus(ctx, "WORKER:APPLYING_TRANSFORMATIONS")
+	if err != nil {
+		slog.Error(err.Error())
+	}
 	errors := a.processor.ApplyTransformations(transformations)
 	if len(errors) > 0 {
 		for _, err := range errors {
@@ -90,12 +112,21 @@ func (a *Application) Run() error {
 	}
 
 	slog.Info("upload starting")
-	// Step 4: Upload all transformed files
+	err = service.ChangeProcessingJobStatus(ctx, "WORKER:STARTING_UPLOADS")
+	if err != nil {
+		slog.Error(err.Error())
+	}
+
 	for _, file := range files {
 		if err := a.service.Upload(ctx, file); err != nil {
 			return fmt.Errorf("error uploading file %s: %w", file, err)
 		}
 		slog.Info("succesfully uploaded :" + file)
+	}
+
+	err = service.ChangeProcessingJobStatus(ctx, "WORKER:UPLOADS_FINISHED_EXITING")
+	if err != nil {
+		slog.Error(err.Error())
 	}
 
 	slog.Info("upload finished, exiting")
