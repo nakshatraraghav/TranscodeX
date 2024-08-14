@@ -1,13 +1,13 @@
-FROM golang:1.20-bullseye as builder
+# Use Alpine as the base image for building the Go application
+FROM golang:1.22.5-alpine as builder
 
-# Install necessary dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
+# Install necessary build dependencies
+RUN apk add --no-cache \
+    build-base \
     git \
-    pkg-config \
-    libvips-dev \
-    ffmpeg \
-    && apt-get clean
+    pkgconfig \
+    vips-dev \
+    ffmpeg
 
 # Set the working directory
 WORKDIR /app
@@ -20,21 +20,21 @@ RUN go mod download
 COPY . .
 
 # Build the Go application
-RUN go build -o /app/worker ./cmd/main.go
+RUN go build -o /app/bin/worker ./cmd/main.go
 
-FROM debian:bullseye-slim
+# Use a lightweight Alpine image for the runtime environment
+FROM alpine:latest
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y \
-    libvips \
-    ffmpeg \
-    && apt-get clean
+RUN apk add --no-cache \
+    vips \
+    ffmpeg
 
 # Set the working directory
 WORKDIR /app
 
 # Copy the built Go application from the builder stage
-COPY --from=builder /app/worker /app/worker
+COPY --from=builder /app/bin/worker /app/worker
 
 # Command to run the application
 CMD ["/app/worker"]
