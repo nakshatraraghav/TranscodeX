@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log/slog"
 	"os"
 	"strings"
 
@@ -22,7 +23,7 @@ var ev env
 func LoadEnv() error {
 	err := godotenv.Load(".env.local")
 	if err != nil {
-		return err
+		slog.Error(err.Error())
 	}
 
 	var e env
