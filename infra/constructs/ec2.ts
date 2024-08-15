@@ -1,8 +1,6 @@
 import { Construct } from "constructs";
-
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
-
 import { env } from "../config/zenv";
 
 export class EC2Instance extends Construct {
@@ -13,6 +11,7 @@ export class EC2Instance extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
+    // Lookup the default VPC
     this.vpc = ec2.Vpc.fromLookup(this, "default_vpc", {
       vpcId: env.VPC_ID,
     });
@@ -27,14 +26,13 @@ export class EC2Instance extends Construct {
       vpc: this.vpc,
       securityGroupName: "transcodex-backend-sg",
       allowAllOutbound: true,
-      description:
-        "Security group for allowing the backend server to communicate",
+      description: "Security group for allowing the backend server to communicate",
     });
 
     this.sg.addIngressRule(
-      ec2.Peer.ipv4("136.233.9.101/32"), // Replace with your IP address
+      ec2.Peer.anyIpv4(), // Allow SSH access from any IP address
       ec2.Port.tcp(22),
-      "Allow SSH access from my IP"
+      "Allow SSH access from anywhere"
     );
 
     this.sg.addIngressRule(
@@ -65,6 +63,7 @@ export class EC2Instance extends Construct {
       iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
     );
 
+    // Specify the subnet type as PUBLIC to ensure it gets a public IP
     this.instance = new ec2.Instance(this, "transcodex-backend-server-id", {
       instanceName: "transcodex-backend",
       machineImage: ec2.MachineImage.latestAmazonLinux2023({
@@ -74,10 +73,14 @@ export class EC2Instance extends Construct {
         ec2.InstanceClass.T2,
         ec2.InstanceSize.MICRO
       ),
-      keyPair: keypair,
+      keyName: keypair.keyPairName,
       vpc: this.vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC, // Ensure it's in a public subnet
+      },
       securityGroup: this.sg,
       role: role,
+      associatePublicIpAddress: true, // Ensure the instance has a public IP
     });
   }
 }

@@ -11,7 +11,6 @@ export class SQSQueue extends Construct {
 
     this.queue = new sqs.Queue(this, "transcodex-queue-id", {
       queueName: "transcodex-sqs-queue",
-      fifo: false,
       visibilityTimeout: Duration.minutes(1),
       encryption: sqs.QueueEncryption.SQS_MANAGED,
     });

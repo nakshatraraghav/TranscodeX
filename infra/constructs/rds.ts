@@ -20,7 +20,7 @@ export class RDSDatabaseInstance extends Construct {
 
     this.database = new rds.DatabaseInstance(this, "transcodex-database-id", {
       instanceIdentifier: env.DATABASE_INSTANCE_IDENTIFIER,
-      databaseName: "transcodex-database",
+      databaseName: "transcodexdatabase",
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_16,
       }),
