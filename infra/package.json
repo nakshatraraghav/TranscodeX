@@ -9,8 +9,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy:local": "cdk deploy -f bin/local.ts",
-    "deploy:prod": "cdk deploy -f bin/infra.ts"
+    "deploy:local": "cdk deploy --app 'ts-node bin/local.ts'",
+    "deploy:prod": "cdk deploy --app 'ts-node bin/infra.ts'"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

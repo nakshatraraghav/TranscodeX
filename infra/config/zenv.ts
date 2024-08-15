@@ -11,6 +11,7 @@ const schema = z.object({
   RDS_DATABASE_PASSWORD: z.string(), //
   BUCKET_NAME: z.string(), //
   ECS_CLUSTER_NAME: z.string(),
+  CONNECTION_STRING: z.string().nullable()
 });
 
 function loadenv() {
