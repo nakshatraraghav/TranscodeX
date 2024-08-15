@@ -4,23 +4,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/nakshatraraghav/transcodex/lambda/config"
 )
 
 type SecretsManagerService struct {
 	client *secretsmanager.SecretsManager
 }
 
-func NewSecretsManagerService() *SecretsManagerService {
-	region := config.Getenv().AWS_REGION
-
-	session, err := session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	})
-	if err != nil {
-		panic(err)
-	}
-
+func NewSecretsManagerService(session *session.Session) *SecretsManagerService {
 	sm := secretsmanager.New(session)
 
 	return &SecretsManagerService{
