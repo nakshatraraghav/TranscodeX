@@ -14,7 +14,7 @@ export class ECSCluster extends Construct {
     super(scope, id);
 
     const vpc = ec2.Vpc.fromLookup(this, "DefaultVPC", {
-      isDefault: true
+      vpcId: env.VPC_ID
     });
 
     this.cluster = new ecs.Cluster(this, "transcodex-cluster-id", {

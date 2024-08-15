@@ -13,7 +13,7 @@ export class RDSDatabaseInstance extends Construct {
     super(scope, id);
 
     const vpc = ec2.Vpc.fromLookup(this, "default_vpc", {
-      isDefault: true,
+      vpcId: env.VPC_ID
     });
 
     const password = SecretValue.unsafePlainText(env.RDS_DATABASE_PASSWORD)
@@ -31,7 +31,7 @@ export class RDSDatabaseInstance extends Construct {
       ),
       multiAz: false,
       // TODO: Create a private vpc subnet and put this instance there
-      publiclyAccessible: true,
+      publiclyAccessible: false,
       credentials: rds.Credentials.fromPassword(env.RDS_DATABASE_USERNAME, password)
     });
   }

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { config } from "dotenv"
 
 const schema = z.object({
+  VPC_ID: z.string(), //
   AWS_ACCOUNT_ID: z.string(), //
   AWS_REGION: z.string(), //
   TRANSCODEX_WORKER_IMAGE_URI: z.string(), //

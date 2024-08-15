@@ -3,6 +3,8 @@ import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as iam from "aws-cdk-lib/aws-iam";
 
+import { env } from "../config/zenv";
+
 export class EC2Instance extends Construct {
   public readonly instance: ec2.Instance;
   public readonly vpc: ec2.IVpc;
@@ -12,7 +14,7 @@ export class EC2Instance extends Construct {
     super(scope, id);
 
     this.vpc = ec2.Vpc.fromLookup(this, "default_vpc", {
-      isDefault: true,
+      vpcId: env.VPC_ID,
     });
 
     const keypair = ec2.KeyPair.fromKeyPairName(

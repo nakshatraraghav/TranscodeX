@@ -34,14 +34,14 @@ export class LambdaFunction extends Construct {
       iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonECS_FullAccess")
     );
 
-    const p = path.join("..", "..", "lambda", "bin", "lambda")
+    const p = path.join(__dirname, "..", "..", "lambda", "bin", "lambda.zip")
 
     this.func = new lambda.Function(this, "transcodex-lambda-id", {
       runtime: lambda.Runtime.PROVIDED_AL2,
       code: lambda.Code.fromAsset(p),
       handler: "main",
       environment: {
-        AWS_REGION: env.AWS_REGION,
+        REGION_STRING: env.AWS_REGION,
         BUCKET_NAME: env.BUCKET_NAME,
         ECS_CLUSTER_NAME: env.ECS_CLUSTER_NAME,
         ECS_TASK_DEFINITION: props.taskDefinitionARN,
