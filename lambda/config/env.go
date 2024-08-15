@@ -7,7 +7,7 @@ import (
 )
 
 type env struct {
-	AWS_REGION                   string `validate:"required"`
+	REGION_STRING                string `validate:"required"`
 	BUCKET_NAME                  string `validate:"required"`
 	ECS_CLUSTER_NAME             string `validate:"required"`
 	ECS_TASK_DEFINITION          string `validate:"required"`
@@ -21,7 +21,7 @@ var ev env
 func LoadEnv() error {
 	var e env
 
-	e.AWS_REGION = os.Getenv("AWS_REGION")
+	e.REGION_STRING = os.Getenv("REGION_STRING")
 	e.BUCKET_NAME = os.Getenv("BUCKET_NAME")
 	e.ECS_CLUSTER_NAME = os.Getenv("ECS_CLUSTER_NAME")
 	e.ECS_TASK_DEFINITION = os.Getenv("ECS_TASK_DEFINITION")

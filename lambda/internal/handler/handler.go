@@ -15,7 +15,7 @@ func Handler(ctx context.Context, event events.SQSEvent) error {
 	env := config.Getenv()
 
 	session, err := session.NewSession(&aws.Config{
-		Region: aws.String(env.AWS_REGION),
+		Region: aws.String(env.REGION_STRING),
 	})
 	if err != nil {
 		return err
