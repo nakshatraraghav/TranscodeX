@@ -18,7 +18,7 @@ export class EC2Instance extends Construct {
     const keypair = ec2.KeyPair.fromKeyPairName(
       this,
       "transcodex_backend",
-      "ssh-credentials"
+      "new-ssh-creds"
     );
 
     this.sg = new ec2.SecurityGroup(this, "SecurityGroup", {
@@ -57,10 +57,6 @@ export class EC2Instance extends Construct {
 
     role.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonRDSFullAccess")
-    );
-
-    role.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess")
     );
 
     role.addManagedPolicy(

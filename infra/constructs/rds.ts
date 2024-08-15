@@ -16,7 +16,7 @@ export class RDSDatabaseInstance extends Construct {
       isDefault: true,
     });
 
-    const password = SecretValue.unsafePlainText(env.RDS_DATABASE_PASSWORD as string)
+    const password = SecretValue.unsafePlainText(env.RDS_DATABASE_PASSWORD)
 
     this.database = new rds.DatabaseInstance(this, "transcodex-database-id", {
       instanceIdentifier: env.DATABASE_INSTANCE_IDENTIFIER,
@@ -30,8 +30,9 @@ export class RDSDatabaseInstance extends Construct {
         ec2.InstanceSize.MICRO
       ),
       multiAz: false,
-      publiclyAccessible: false,
-      credentials: rds.Credentials.fromPassword(env.RDS_DATABASE_USERNAME as string, password)
+      // TODO: Create a private vpc subnet and put this instance there
+      publiclyAccessible: true,
+      credentials: rds.Credentials.fromPassword(env.RDS_DATABASE_USERNAME, password)
     });
   }
 }

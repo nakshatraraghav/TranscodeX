@@ -11,6 +11,7 @@ import { env } from "../config/zenv";
 
 interface LambdaFunctionProps {
   queue: sqs.IQueue
+  taskDefinitionARN: string
 }
 
 export class LambdaFunction extends Construct {
@@ -43,7 +44,7 @@ export class LambdaFunction extends Construct {
         AWS_REGION: env.AWS_REGION,
         BUCKET_NAME: env.BUCKET_NAME,
         ECS_CLUSTER_NAME: env.ECS_CLUSTER_NAME,
-        ECS_TASK_DEFINITION: env.ECS_TASK_DEFINITION,
+        ECS_TASK_DEFINITION: props.taskDefinitionARN,
         RDS_DATABASE_USERNAME: env.RDS_DATABASE_USERNAME,
         RDS_DATABASE_PASSWORD: env.RDS_DATABASE_PASSWORD,
         DATABASE_INSTANCE_IDENTIFIER: env.DATABASE_INSTANCE_IDENTIFIER

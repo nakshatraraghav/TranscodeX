@@ -5,8 +5,9 @@ import { InfraStack } from "../lib/infra-stack";
 
 import { config } from "dotenv";
 import { env } from "../config/zenv"
-config();
-
+config({
+  path: "../.env"
+});
 
 const app = new cdk.App();
 new InfraStack(app, "InfraStack", {

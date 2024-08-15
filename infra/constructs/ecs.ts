@@ -18,7 +18,7 @@ export class ECSCluster extends Construct {
     });
 
     this.cluster = new ecs.Cluster(this, "transcodex-cluster-id", {
-      clusterName: "transcodex-worker-cluster",
+      clusterName: env.ECS_CLUSTER_NAME,
       vpc: vpc,
       enableFargateCapacityProviders: true
     });
@@ -60,5 +60,9 @@ export class ECSCluster extends Construct {
       })
     });
 
-  } 
+  }
+
+  public getTaskDefinition(): string {
+    return this.task.taskDefinitionArn
+  }
 }
