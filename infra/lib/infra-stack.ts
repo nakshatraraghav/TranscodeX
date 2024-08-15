@@ -5,6 +5,8 @@ import { Construct } from "constructs";
 import { EC2Instance } from "../constructs/ec2";
 import { S3Bucket } from "../constructs/s3";
 import { RDSDatabaseInstance } from "../constructs/rds";
+import { SQSQueue } from "../constructs/sqs"
+import { ECSCluster } from "../constructs/ecs";
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -18,5 +20,10 @@ export class InfraStack extends cdk.Stack {
       this,
       "transcodex-storage-database"
     );
+
+    const queue = new SQSQueue(this, "transcodex-sqs-queue");
+
+
+    const cluster = new ECSCluster(this, "transcodex-worker-cluster")
   }
 }
