@@ -14,6 +14,7 @@ type env struct {
 	RDS_DATABASE_USERNAME        string `validate:"required"`
 	RDS_DATABASE_PASSWORD        string `validate:"required"`
 	DATABASE_INSTANCE_IDENTIFIER string `validate:"required"`
+	CONNECTION_STRING            string
 }
 
 var ev env
@@ -28,6 +29,7 @@ func LoadEnv() error {
 	e.RDS_DATABASE_USERNAME = os.Getenv("RDS_DATABASE_USERNAME")
 	e.RDS_DATABASE_PASSWORD = os.Getenv("RDS_DATABASE_PASSWORD")
 	e.DATABASE_INSTANCE_IDENTIFIER = os.Getenv("DATABASE_INSTANCE_IDENTIFIER")
+	e.CONNECTION_STRING = os.Getenv("CONNECTION_STRING")
 
 	vd := lib.GetValidator()
 
