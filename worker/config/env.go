@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"strings"
@@ -41,6 +42,8 @@ func LoadEnv() error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(e)
 
 	ev = e
 
