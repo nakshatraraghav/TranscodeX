@@ -158,6 +158,30 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "media",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "{{x-api-key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/media/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"media",
+								"health"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -237,6 +261,23 @@
 							"path": [
 								"users",
 								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete user",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
 							]
 						}
 					},
@@ -410,42 +451,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "revoke api key",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/sessions/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"sessions",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "invalidate all sessions",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/sessions/all",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"sessions",
-								"all"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -538,6 +543,178 @@
 							],
 							"path": [
 								"apikeys"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "media",
+			"item": [
+				{
+					"name": "upload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = pm.response.json()",
+									"",
+									"pm.environment.set(\"s3-upload-url\", body.presigned_url)",
+									"",
+									"pm.environment.set(\"upload-id\", body.upload_id)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "{{x-api-key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"file_name\": \"lain.jpg\",\n\t\"file_type\": \"IMAGE\",\n\t\"mime_type\": \"image/jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/media/upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"media",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "upload to s3",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "/home/combatrickshaw/Downloads/lain.jpg"
+							}
+						},
+						"url": {
+							"raw": "{{s3-upload-url}}",
+							"host": [
+								"{{s3-upload-url}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add processing job",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const body = pm.response.json()",
+									"",
+									"pm.environment.set(\"processing_job_id\", body.processing_job_id)",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "{{x-api-key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"job_type\": \"IMAGE\",\n\t\"upload_id\": \"{{upload-id}}\",\n\t\"operations\": {\n\t\t\"ROTATE\": \"180\",\n\t\t\"WATERMARK\": \"bruh\",\n\t\t\"FORCE-RESIZE\": \"100x400\"\n\t}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/media/process",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"media",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get job status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "{{x-api-key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/media/status/{{processing_job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"media",
+								"status",
+								"{{processing_job_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "download result",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "{{x-api-key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/media/download/{{processing_job_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"media",
+								"download",
+								"{{processing_job_id}}"
 							]
 						}
 					},
