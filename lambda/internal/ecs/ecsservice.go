@@ -1,6 +1,8 @@
 package ecsservice
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -24,43 +26,70 @@ func (e *ECSService) RunTask(record events.SQSMessage, CONNECTION_STRING string)
 
 	env := config.Getenv()
 
-	mediaType := record.Attributes["media_type"]
-	uploadID := record.Attributes["upload_id"]
-	objectKey := record.Attributes["object_key"]
-	transformations := record.Attributes["transformations"]
+	// Check if the required attributes are present
+	mediaType, ok := record.MessageAttributes["media_type"]
+	if !ok {
+		return fmt.Errorf("missing required attribute: media_type")
+	}
 
+	uploadID, ok := record.MessageAttributes["upload_id"]
+	if !ok {
+		return fmt.Errorf("missing required attribute: upload_id")
+	}
+
+	objectKey, ok := record.MessageAttributes["object_key"]
+	if !ok {
+		return fmt.Errorf("missing required attribute: object_key")
+	}
+
+	transformations, ok := record.MessageAttributes["transformations"]
+	if !ok {
+		return fmt.Errorf("missing required attribute: transformations")
+	}
+
+	fmt.Println("PRINTTTTTT", env)
+
+	// Run the ECS task
 	_, err := e.client.RunTask(&ecs.RunTaskInput{
 		Cluster:        aws.String(env.ECS_CLUSTER_NAME),
 		TaskDefinition: aws.String(env.ECS_TASK_DEFINITION),
 		LaunchType:     aws.String("FARGATE"),
+		NetworkConfiguration: &ecs.NetworkConfiguration{
+			AwsvpcConfiguration: &ecs.AwsVpcConfiguration{
+				Subnets: aws.StringSlice(env.SUBNET_IDS),
+				SecurityGroups: []*string{
+					&env.SECURITY_GROUP_ID,
+				},
+			},
+		},
 		Overrides: &ecs.TaskOverride{
 			ContainerOverrides: []*ecs.ContainerOverride{
-				&ecs.ContainerOverride{
+				{
 					Name: aws.String("transcodex-worker"),
 					Environment: []*ecs.KeyValuePair{
-						&ecs.KeyValuePair{
+						{
 							Name:  aws.String("MEDIA_TYPE"),
-							Value: aws.String(mediaType),
+							Value: mediaType.StringValue,
 						},
-						&ecs.KeyValuePair{
+						{
 							Name:  aws.String("BUCKET_NAME"),
 							Value: aws.String(env.BUCKET_NAME),
 						},
-						&ecs.KeyValuePair{
+						{
 							Name:  aws.String("OBJECT_KEY"),
-							Value: aws.String(objectKey),
+							Value: objectKey.StringValue,
 						},
-						&ecs.KeyValuePair{
+						{
 							Name:  aws.String("TRANSFORMATIONS"),
-							Value: aws.String(transformations),
+							Value: transformations.StringValue,
 						},
-						&ecs.KeyValuePair{
+						{
 							Name:  aws.String("CONNECTION_STRING"),
 							Value: aws.String(CONNECTION_STRING),
 						},
-						&ecs.KeyValuePair{
+						{
 							Name:  aws.String("UPLOAD_ID"),
-							Value: aws.String(uploadID),
+							Value: uploadID.StringValue,
 						},
 					},
 				},

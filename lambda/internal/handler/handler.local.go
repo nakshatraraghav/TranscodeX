@@ -23,7 +23,10 @@ func HandlerLocal(ctx context.Context, event events.SQSEvent) error {
 	ecs := ecsservice.NewECSService(session)
 
 	for _, record := range event.Records {
-		ecs.RunTask(record, env.CONNECTION_STRING)
+		err := ecs.RunTask(record, env.CONNECTION_STRING)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
