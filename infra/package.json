@@ -10,7 +10,9 @@
     "test": "jest",
     "cdk": "cdk",
     "deploy:local": "cdk deploy --app 'ts-node bin/local.ts'",
-    "deploy:prod": "cdk deploy --app 'ts-node bin/infra.ts'"
+    "destroy:local": "cdk destroy --app 'ts-node bin/local.ts' LocalStack",
+    "deploy:prod": "cdk deploy --app 'ts-node bin/infra.ts'",
+    "destroy:prod": "cdk destroy --app 'ts-node bin/infra.ts' InfraStack"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
