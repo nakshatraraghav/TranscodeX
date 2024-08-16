@@ -56,4 +56,8 @@ func MediaRouter(router *chi.Mux, db *sql.DB) {
 	subrouter.With(
 		middlewares.ValidateApiKey(apikeyService),
 	).Get("/status/{job_id}", controller.GetProcessingJobStatus)
+
+	subrouter.With(
+		middlewares.ValidateApiKey(apikeyService),
+	).Get("/download/{job_id}", controller.DownloadProcessedMediaHandler)
 }

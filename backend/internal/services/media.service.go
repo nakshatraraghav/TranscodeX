@@ -134,7 +134,7 @@ func (ms *mediaService) GetProcessingJobByID(ctx context.Context, ProcessingJobI
 	var job schema.ProcessingJob
 
 	q := `SELECT
-	id, user_id, upload_id, job_type, status, created_at, updated_at
+	id, user_id, upload_id, job_type, status, result_url, created_at, updated_at
 	FROM processing_jobs
 	WHERE id = $1`
 
@@ -144,6 +144,7 @@ func (ms *mediaService) GetProcessingJobByID(ctx context.Context, ProcessingJobI
 		&job.UploadID,
 		&job.JobType,
 		&job.Status,
+		&job.ResultUrl,
 		&job.CreatedAt,
 		&job.UpdatedAt,
 	)
