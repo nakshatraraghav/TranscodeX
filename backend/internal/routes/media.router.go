@@ -52,4 +52,8 @@ func MediaRouter(router *chi.Mux, db *sql.DB) {
 		middlewares.ValidateApiKey(apikeyService),
 		middlewares.ValidateRequestBody[schema.CreateProcessingJobRequestBody],
 	).Post("/process", controller.CreateProcessingJobHandler)
+
+	subrouter.With(
+		middlewares.ValidateApiKey(apikeyService),
+	).Get("/status/{job_id}", controller.GetProcessingJobStatus)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	s3service "github.com/nakshatraraghav/transcodex/backend/internal/aws/s3"
 	sqsservice "github.com/nakshatraraghav/transcodex/backend/internal/aws/sqs"
+	"github.com/nakshatraraghav/transcodex/backend/internal/schema"
 )
 
 var (
@@ -34,6 +35,10 @@ type MediaService interface {
 		UploadID uuid.UUID,
 		JobType string,
 		ApiKeyID uuid.UUID) (string, error)
+
+	GetProcessingJobByID(ctx context.Context,
+		ProcessingJobID uuid.UUID,
+	) (schema.ProcessingJob, error)
 }
 
 type mediaService struct {
@@ -117,4 +122,29 @@ func (ms *mediaService) CreateProcessingJob(
 
 func (ms *mediaService) AddProcessingJobToQueue(mediaType, key, uploadID, transformations string) error {
 	return ms.sqs.Enqueue(mediaType, key, uploadID, transformations)
+}
+
+func (ms *mediaService) GetProcessingJobByID(ctx context.Context, ProcessingJobID uuid.UUID) (schema.ProcessingJob, error) {
+	var job schema.ProcessingJob
+
+	q := `SELECT
+	id, user_id, upload_id, job_type, status, created_at, updated_at
+	FROM processing_jobs
+	WHERE id = $1`
+
+	err := ms.db.QueryRowContext(ctx, q, ProcessingJobID).Scan(
+		&job.ID,
+		&job.UserID,
+		&job.UploadID,
+		&job.JobType,
+		&job.Status,
+		&job.CreatedAt,
+		&job.UpdatedAt,
+	)
+
+	if err != nil {
+		return job, err
+	}
+
+	return job, nil
 }

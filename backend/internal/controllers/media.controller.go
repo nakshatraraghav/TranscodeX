@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/nakshatraraghav/transcodex/backend/internal/schema"
@@ -124,6 +125,65 @@ func (mc *MediaController) CreateProcessingJobHandler(w http.ResponseWriter, r *
 	}
 
 	util.WriteJSON(w, http.StatusCreated, map[string]string{
-		"media_id": id,
+		"processing_job_id": id,
 	})
 }
+
+func (mc *MediaController) GetProcessingJobStatus(w http.ResponseWriter, r *http.Request) {
+	apiKey, ok := r.Context().Value(kc).(*schema.ApiKey)
+	if !ok {
+		util.WriteError(w, http.StatusBadRequest, "Invalid API key")
+		return
+	}
+
+	jid := chi.URLParam(r, "job_id")
+	if jid == "" {
+		util.WriteError(w, http.StatusBadRequest, "job id missing from request")
+		return
+	}
+
+	jobID, err := uuid.Parse(jid)
+	if err != nil {
+		if uuid.IsInvalidLengthError(err) {
+			util.WriteError(w, http.StatusBadRequest, "invalid processing job id")
+			return
+		}
+
+		util.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	job, err := mc.service.GetProcessingJobByID(r.Context(), jobID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			util.WriteError(w, http.StatusNotFound, "processing job not found")
+			return
+		}
+
+		slog.Error(err.Error())
+
+		util.WriteError(w, http.StatusInternalServerError, "failed to get the processing job")
+		return
+	}
+
+	if job.UserID != apiKey.UserID {
+		util.WriteError(w, http.StatusUnauthorized, "you are not authorized for this processing job")
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, map[string]string{
+		"status": job.Status,
+	})
+}
+
+// func (mc *MediaController) DownloadProcessedMediaHandler(w http.ResponseWriter, r *http.Request) {
+
+// }
+
+// func (mc *MediaController) AllRunningProcessingJobs(w http.ResponseWriter, r *http.Request) {
+
+// }
+
+// func (mc *MediaController) AllCompletedProcessingJobs(w http.ResponseWriter, r *http.Request) {
+
+// }

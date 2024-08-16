@@ -44,6 +44,10 @@ type CreateProcessingJobRequestBody struct {
 	Operations json.RawMessage `validate:"required,allowed_operations" json:"operations"`
 }
 
+type GetProcessingJobStatusRequestBody struct {
+	ProcessingJobID string `validate:"required"`
+}
+
 func ValidateJobTypeField(fl validator.FieldLevel) bool {
 	jtype, ok := fl.Field().Interface().(string)
 	if !ok {
