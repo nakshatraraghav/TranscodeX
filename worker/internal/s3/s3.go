@@ -69,13 +69,13 @@ func (s *S3Service) Download(ctx context.Context) error {
 
 // s3.go
 
-func (s *S3Service) Upload(ctx context.Context, filePath string) error {
+func (s *S3Service) Upload(ctx context.Context, filePath string) (string, error) {
 	bucketName := cfg.GetEnv().BUCKET_NAME
 	objectKey := GetNewObjectKey(filePath)
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer file.Close()
 
@@ -85,10 +85,10 @@ func (s *S3Service) Upload(ctx context.Context, filePath string) error {
 		Body:   file,
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return objectKey, nil
 }
 
 func GetNewObjectKey(filePath string) string {

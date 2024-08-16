@@ -126,10 +126,18 @@ func (a *Application) Run() error {
 	}
 
 	for _, file := range files {
-		if err := a.service.Upload(ctx, file); err != nil {
+		url, err := a.service.Upload(ctx, file)
+		if err != nil {
 			slog.Error("Failed to upload file", "file", file, "error", err)
 			return fmt.Errorf("error uploading file %s: %w", file, err)
 		}
+
+		err = service.AddResultURL(ctx, url)
+		if err != nil {
+			slog.Error("Failed to update result_url", "status", "WORKER:UPLOADS_STATUS_CHANGING_ERROR", "error", err)
+			return err
+		}
+
 		slog.Info("Successfully uploaded file", "file", file)
 	}
 
