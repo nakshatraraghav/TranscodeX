@@ -17,6 +17,8 @@ import (
 
 var kc types.ApiKeyContextKey = "apikey"
 
+var JOB_COMPLETE = "WORKER:UPLOADS_FINISHED_EXITING"
+
 type MediaController struct {
 	service services.MediaService
 }
@@ -176,9 +178,64 @@ func (mc *MediaController) GetProcessingJobStatus(w http.ResponseWriter, r *http
 	})
 }
 
-// func (mc *MediaController) DownloadProcessedMediaHandler(w http.ResponseWriter, r *http.Request) {
+func (mc *MediaController) DownloadProcessedMediaHandler(w http.ResponseWriter, r *http.Request) {
+	apiKey, ok := r.Context().Value(kc).(*schema.ApiKey)
+	if !ok {
+		util.WriteError(w, http.StatusBadRequest, "Invalid API key")
+		return
+	}
 
-// }
+	jid := chi.URLParam(r, "job_id")
+	if jid == "" {
+		util.WriteError(w, http.StatusBadRequest, "job id missing from request")
+		return
+	}
+
+	jobID, err := uuid.Parse(jid)
+	if err != nil {
+		if uuid.IsInvalidLengthError(err) {
+			util.WriteError(w, http.StatusBadRequest, "invalid processing job id")
+			return
+		}
+
+		util.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	job, err := mc.service.GetProcessingJobByID(r.Context(), jobID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			util.WriteError(w, http.StatusNotFound, "processing job not found")
+			return
+		}
+
+		slog.Error(err.Error())
+
+		util.WriteError(w, http.StatusInternalServerError, "failed to get the processing job")
+		return
+	}
+
+	if job.UserID != apiKey.UserID {
+		util.WriteError(w, http.StatusUnauthorized, "you are not authorized for this processing job")
+		return
+	}
+
+	if job.Status != JOB_COMPLETE {
+		util.WriteError(w, http.StatusBadRequest, fmt.Sprintf("job not complete yet, status: %v", job.Status))
+		return
+	}
+
+	url, err := mc.service.GeneratePresignedDownloadURL(job.ResultUrl)
+	if err != nil {
+		slog.Error(err.Error())
+		util.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	util.WriteJSON(w, http.StatusOK, map[string]string{
+		"result": url,
+	})
+}
 
 // func (mc *MediaController) AllRunningProcessingJobs(w http.ResponseWriter, r *http.Request) {
 

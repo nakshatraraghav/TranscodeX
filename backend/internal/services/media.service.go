@@ -24,6 +24,8 @@ type MediaService interface {
 
 	AddProcessingJobToQueue(mediaType, key, uploadID, transformations string) error
 
+	GeneratePresignedDownloadURL(key string) (string, error)
+
 	CreateUpload(ctx context.Context,
 		UserID uuid.UUID,
 		ApiKeyID uuid.UUID,
@@ -122,6 +124,10 @@ func (ms *mediaService) CreateProcessingJob(
 
 func (ms *mediaService) AddProcessingJobToQueue(mediaType, key, uploadID, transformations string) error {
 	return ms.sqs.Enqueue(mediaType, key, uploadID, transformations)
+}
+
+func (ms *mediaService) GeneratePresignedDownloadURL(key string) (string, error) {
+	return ms.s3.GeneratePresignedDownloadURL(key)
 }
 
 func (ms *mediaService) GetProcessingJobByID(ctx context.Context, ProcessingJobID uuid.UUID) (schema.ProcessingJob, error) {
